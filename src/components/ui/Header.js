@@ -7,7 +7,7 @@ import {makeStyles} from '@material-ui/styles'
 import Tabs from '@material-ui/core/Tabs'
 import Tab from '@material-ui/core/Tab'
 import LoginMenu from './LoginMenu'
-
+import logo from '../assets/logo.png'
 
 function ElevationScroll(props) {
     const { children} = props;
@@ -41,6 +41,10 @@ const useStyles = makeStyles(theme => ({
     },
     button: {
         marginLeft: "20px"
+    },
+    logo: {
+        maxWidth: "160px",
+        paddingRight: "20px"
     }
 
 })) 
@@ -55,13 +59,17 @@ export default function Header(props){
         <ElevationScroll>
             <AppBar>
                 <Toolbar>
+                    <img src={logo} alt="logo" className={classes.logo} />
                     <Typography variant="h4">
-                        Course Forum
+                        Eagle 5
                     </Typography>
                     <Tabs className={classes.tabContainer} centered onChange={handleChange} value={value}>
                         <Tab className={classes.tab} label="Home" />
-                        <Tab className={classes.tab} label="Unused" />
-                        <Tab className={classes.tab} label="Unused" />
+                        <Tab className={classes.tab} label="OpsCap" />
+                        <Tab className={classes.tab} label="Logs" />
+                        <Tab className={classes.tab} label="MX" />
+                        <Tab className={classes.tab} label="Pos/Neg" />
+                        <Tab className={classes.tab} label="Asset Task" />
                     </Tabs>
                 <LoginMenu/>
                 </Toolbar>
