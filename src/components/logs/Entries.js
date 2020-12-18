@@ -6,7 +6,9 @@ import {
 } from "@material-ui/core";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import { makeStyles } from "@material-ui/core/styles";
-import React from "react";
+import React, { useState } from "react";
+import LogComments from "./LogComments";
+import LogHistory from "./LogHistory"
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -25,19 +27,24 @@ const useStyles = makeStyles((theme) => ({
 
 const Entries = (props) => {
     const classes = useStyles();
-    const [expanded, setExpanded] = React.useState(false);
+    const [expanded, setExpanded] = useState(false);
 
-    const handleChange = (panel) => (event, isExpanded) => {
+    const handleChange = (panel, n) => (event, isExpanded) => {
+        props.getComments(n);
+        props.getHistory(n);
         setExpanded(isExpanded ? panel : false);
     };
 
+
+
     let n = 0;
     const accordion = props.logEntries.map((entry) => {
-        n++;
+        n = entry.id;
+        if(entry.archived === true){ return ""; }
         return (
             <Accordion
-                expanded={expanded === "panel"+n}
-                onChange={handleChange(`panel${n}`)}
+                expanded={expanded === `panel${n}`}
+                onChange={handleChange(`panel${n}`, n)}
             >
                 <AccordionSummary
                     expandIcon={<ExpandMoreIcon />}
@@ -52,9 +59,8 @@ const Entries = (props) => {
                     </Typography>
                 </AccordionSummary>
                 <AccordionDetails>
-                    <Typography>
-                        Comments and such go here.
-                    </Typography>
+                    {props.logComments.length > 0 ? <LogComments comments={props.logComments} /> : ""}
+                    {props.logHistory.length > 0 ? <LogHistory history={props.logHistory} /> : ""}
                 </AccordionDetails>
             </Accordion>
         );
