@@ -4,17 +4,19 @@ class AssetRequest extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      userId: 2, //passed userId
-      user: {}, //this is the entire user into from the database
-      satellites: [],
-      userRequests: [],
-      newRequest: {} //this allows setting the params to add a new flight to the schedule
+      userId: 4, //passed userId
+      user: {}, //this is the entire user info from the database for the specified user
+      satellites: [], //these are all of the available satellites
+      userRequests: [], //these are all of the requests specific to the specified user
+      messages: [], //so far these are all of the messages for all of the requests not filtered at this point
+      newRequest: {}, //this allows setting the params to add a new request
+      newMessage: {}
     }
   }
   
 
   updateUser = async () => {
-    fetch("http://localhost:8080/users/1")
+    fetch(`http://localhost:8080/users/${this.state.userId}`)
         .then((res) => res.json())
         .then((res) => {
             this.setState({ user: res });
@@ -23,10 +25,19 @@ class AssetRequest extends React.Component {
   };
 
   updateRequests = async () => {
-    fetch("http://localhost:8080/asset-request//userId/1")
+    fetch(`http://localhost:8080/asset-request/userId/${this.state.userId}`)
         .then((res) => res.json())
         .then((res) => {
             this.setState({ userRequests: res });
+        })
+        .catch((res) => alert(res.message));
+  };
+
+  updateMessages = async () => {
+    fetch(`http://localhost:8080/asset-request/message`)
+        .then((res) => res.json())
+        .then((res) => {
+            this.setState({ messages: res });
         })
         .catch((res) => alert(res.message));
   };
@@ -36,6 +47,7 @@ class AssetRequest extends React.Component {
     var firstName = this.state.user.first_name;
     console.log("userData: "+ firstName);
     this.updateRequests();
+    this.updateMessages();
     
 
     // var response2 = await fetch('http://localhost:8080/asset-request/userId/'+this.state.userId, { credentials : 'include', mode: 'cors' });
@@ -55,17 +67,16 @@ class AssetRequest extends React.Component {
       "longitude": 0,
       "elevation": 0,
       "status": "pending"
-    }
-    this.setState({newRequest: newRequest})
-  }
+    };
+    this.setState({newRequest: newRequest});
 
-  BuildRequest = async () => {//should be called each time a state change is made
-    let url = `http://localhost:8080/asset-request/${this.state.userId}` ;
-    var response = await fetch(url);
-    const scheduleBody = await response.json();
-    this.setState(previousState => (
-      {scheduleForDate: scheduleBody}));
-    
+    let newMessage = {
+      "user_id": this.state.userId,
+      "time_stamp": new Date(),
+      "text": "",
+      "asset_request_id": 0,
+    };
+    this.setState({newMessage: newMessage});
   }
 
   DateSetter = (d) => {//changes a date to DD MMM YYYY string format
@@ -76,6 +87,21 @@ class AssetRequest extends React.Component {
         date = `${date.getDate()} ${date.toLocaleString('default', {month: 'short'})} ${date.getFullYear()}`;
     }
     return date;
+  }
+
+  TimeSetter = (d) => {//returns the time in HH:MM string format
+
+    let time = new Date(d);
+    let addZero = (i) =>{ //used to set zeros in front of a single digit number for dates
+      if (i < 10) {
+        i = '0' + i;
+      }
+      return i;
+    }
+    let hours = addZero(time.getHours());
+    let mins = addZero(time.getMinutes());
+    return `${hours}:${mins}`;
+
   }
   
   // DateSelector = () => {//used in the header to set the state selected date to view schedule
@@ -96,6 +122,7 @@ class AssetRequest extends React.Component {
   SubmitNewRequest = async () => {//sends new request to db and forces refresh of state
     console.log('submitting new request')
     console.log(this.state.newRequest);
+    let newMessageId;
     var request = this.state.newRequest;
     var requestBody = JSON.stringify(request);
     await fetch('http://localhost:8080/asset-request/', {
@@ -105,6 +132,27 @@ class AssetRequest extends React.Component {
       },  
       body: requestBody
     })
+        .then((res) => res.json())
+        .then((res) => {
+          newMessageId = parseInt(res);
+        })
+        .then(this.updateRequests());
+
+    this.setState(previousState => ({
+      newMessage: {
+        ...previousState.newMessage, 
+        asset_request_id: newMessageId
+      }
+    }));        
+    await fetch('http://localhost:8080/asset-request/message/', {
+      method: "POST",
+      headers :{
+        'Content_Type': 'application/json'
+      },
+      body: JSON.stringify(this.newMessage)
+    })
+      .then(this.updateMessages());
+
   }
 
   NewRequest = () => {//full function to set create the params for a new flight on the schedule
@@ -190,19 +238,11 @@ class AssetRequest extends React.Component {
         }));
       }
 
-      if (event.target.id === "tailNumber") {
-        this.setState(previousState => ({
-          newFlight: {
-            ...previousState.newFlight, 
-            aircraftId: parseInt(event.target.value)
-          }
-        }));
-      }
       if (event.target.id === "notes") {
         this.setState(previousState => ({
-          newFlight: {
-            ...previousState.newFlight, 
-            aircraftId: parseInt(event.target.value)
+          newMessage: {
+            ...previousState.newMessage, 
+            text: event.target.value
           }
         }));
       }
@@ -213,8 +253,7 @@ class AssetRequest extends React.Component {
         <table>
           <thead>
             <tr>
-              <th>User ID</th>
-              {/* <th>Mission Type</th> */}
+              <th>Mission Type</th>
               <th>Satellite</th>
               <th>Start Date</th>
               <th>Start Time</th>
@@ -230,8 +269,7 @@ class AssetRequest extends React.Component {
           <tbody>
   
               <tr>
-                <td> {this.state.userId} </td>
-                {/* {/* <td> On-Orbit Missile Battery</td> */}
+                <td> On-Orbit Missile Battery</td>
                 {/* <td>
                   <select id="satellites" onChange={handleChange} >
                     {this.state.satellites.map(satellite => <option id="satellite" value={satellite.id}> {satellite.id} </option>)}
@@ -253,7 +291,58 @@ class AssetRequest extends React.Component {
       
       )
   }
+
+  MyRequestsHeader = () => {//just the header for current user's requests
   
+      return(
+          <thead>
+            <tr>
+              <th>Mission Type</th>
+              <th>Satellite</th>
+              <th>Start Date</th>
+              <th>Start Time</th>
+              <th>Stop Date</th>
+              <th>Stop Time</th>
+              <th>Latitude</th>
+              <th>Longitude</th>
+              <th>Elevation</th>
+              <th>Status</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+      )
+  }
+  
+  DisplayMessages = (requestId) => {//Displays the messages for each of the requests
+    return this.state.messages.map(message => {
+      if (message.asset_request_id === requestId) {
+          return <a> {message.text} </a>
+      }
+    })
+
+  }
+
+  MyRequests = () => {//just the header for current user's requests
+    return this.state.userRequests.map(request => {
+      return(
+
+              <tr>
+                <td> On-Orbit Missile Battery</td>
+                <td> 25891 </td>
+                <td>{this.DateSetter(request.pass_start)}</td>
+                <td>{this.TimeSetter(request.pass_start)}</td>
+                <td>{this.DateSetter(request.pass_stop)}</td>
+                <td>{this.TimeSetter(request.pass_stop)}</td>
+                <td>{request.latitude}</td>
+                <td>{request.longitude}</td>
+                <td>{request.elevation}</td>
+                <td>{request.status}</td>
+                <td>{this.DisplayMessages(request.id)}</td>
+              </tr>  
+            )
+
+    })
+  }
 //   DeleteFlight = async (flight_id) => {//deletes a flight based on the flight_id
 //     let url = 'http://localhost:8081/flightschedule/' + flight_id;
 //     await fetch(url, {
@@ -275,149 +364,26 @@ class AssetRequest extends React.Component {
 //     }).then(this.BuildScheduleForDate)
 //   }
   
-//   ShowSchedule = () => { //main table for displaying the flight schedule as defined in the state for a set date or ALL
-//     var schedule = this.state.scheduleForDate;
-//     var pilots = this.state.pilots;
-//     var aircraft = this.state.aircraft;
-//     var updatedFlight = {}
-      
-//     let addZero = (i) =>{ //used to set zeros in front of a single digit number for dates
-//       if (i < 10) {
-//         i = '0' + i;
-//       }
-//       return i;
-//     }
-  
-//     schedule.forEach(flight => {//get the type and tailnumber for each flight 
-//       aircraft.forEach(plane => {
-//         if (flight.aircraft_id === plane.aircraft_id) {
-//           flight.aircraft_model = plane.aircraft_model;
-//           flight.tail_number = plane.tail_number
-//         }
-//       })
-//       pilots.forEach(pilot => {//get the pilot name for each flight
-//         if (flight.pilot_id === pilot.pilot_id) flight.last_name = pilot.last_name
-//       })
-//     });
-    
-//     //handle change
-//     const handleChange = (event, updatedFlight_id) => {//handles the ongoing changes for each of the inputs for creating new flight
-//       updatedFlight.flight_id = updatedFlight_id;
-//       console.log('updatedFlight_id passed to handleChange: ' + updatedFlight_id)
 
-//       if (event.target.id === "takeoffDate") {
-//         let date = event.target.value;
-//         let year = date.substring(0, 4);
-//         let month = date.substring(5, 7);
-//         let day = date.substring(8, 10)
-//         updatedFlight.takeoffTime = new Date(year,month-1, day)
-//         console.log("date: " + updatedFlight.takeoffTime)
-//       }
-
-//       if (event.target.id === "takeoffTime") {
-//         let time = event.target.value;
-//         let hours = parseInt(time.substring(0, time.indexOf(':')));
-//         let minutes = parseInt(time.substring(time.indexOf(':')+1, time.indexOf(':')+3));
-//         updatedFlight.takeoffTime = new Date(updatedFlight.takeoffTime.setHours(hours, minutes))
-//        }
-
-//       if (event.target.id === "duration") {
-//         updatedFlight.duration = parseFloat(event.target.value)
-//       }
-
-//       if (event.target.id === "callsign") {
-//         updatedFlight.callSign = event.target.value
-//         console.log("callsign: " + updatedFlight.callSign)
-//       }
-
-//       if (event.target.id === "pilots") {
-//         updatedFlight.pilotId = parseFloat(event.target.value)
-//       }
-
-//       if (event.target.id === "tailNumber") {
-//         updatedFlight.aircraftId = parseInt(event.target.value)
-//       }
-
-//       if (event.target.id === 'update') {
- 
-//         let tempFlightIndex = this.state.schedule.findIndex(flight => flight.flight_id === updatedFlight_id);
-//         let tempFlight = this.state.schedule[tempFlightIndex]
-//         console.log('flight index: ' + tempFlightIndex)
-//         console.log('flight Id: ' + updatedFlight.flight_id)
-//         console.log('tempFlight obj: ' + tempFlight)
-//         if (!updatedFlight.aircraftId) {updatedFlight.aircraftId = tempFlight.aircraft_id}
-//         console.log("aircraft: " + updatedFlight.aircraftId)
-//         if (!updatedFlight.pilotId) {updatedFlight.pilotId = tempFlight.pilot_id}
-//         console.log("pilot: " + updatedFlight.pilotId)
-//         if (!updatedFlight.takeoffTime) {updatedFlight.takeoffTime = tempFlight.scheduled_takeoff_timestamp}
-//         console.log("date: " + updatedFlight.takeoffTime)
-//         if (!updatedFlight.duration) {
-//           updatedFlight.duration = ((new Date(tempFlight.scheduled_landing_timestamp) - new Date(tempFlight.scheduled_takeoff_timestamp))/(60*60*1000)).toFixed(1);
-//         }  
-//           // let duration = ((landT - d)/(60*60*1000)).toFixed(1);
-//         console.log("duration: " + updatedFlight.duration)
-//         if (!updatedFlight.callSign) {updatedFlight.callSign = tempFlight.callSign}
-//         console.log("callsign: " + updatedFlight.callSign)
-
-
-//         this.UpdateFlight(updatedFlight)
-//       }
-//     }
-
-//     const Success = (props) => {//function for setting the Mission Success
-//       if (props.success) {
-//         return <td> YES </td>;
-//       } else if (new Date(props.landTime) < new Date()){
-//         return <td> NO </td>
-//       }
-//       return <td> TBD </td>;
-//     } 
- 
-//     return schedule.map(flight => {//builds the row for each line in the flight schedule
-//       let missionSuccess = false;
-//       let d = new Date(flight.scheduled_takeoff_timestamp);
-//       let landT = new Date(flight.scheduled_landing_timestamp);
-//       if (flight.actual_landing_timestamp) {
-//         d = new Date(flight.actual_takeoff_timestamp);
-//         landT = new Date(flight.actual_landing_timestamp);
-//         missionSuccess = true;
-//       }
-//       let date = d.getDate();
-//       let month = d.toLocaleString('default', {month: 'short'});
-//       let year = d.getFullYear();
-//       let hours = addZero(d.getHours());
-//       let mins = addZero(d.getMinutes());
-  
-//       let duration = ((landT - d)/(60*60*1000)).toFixed(1);
-//       console.log("flight_id prior to render return: " + flight.flight_id)
-  
-//       return(
-//         <tr value ={flight.flight_id}>
-//           <td>{date} {month} {year}</td>
-//           <td> {hours}:{mins} </td>
-//           <td> {duration} h </td>
-//           <td><input onChange={(e) => handleChange(e, flight.flight_id)} type="text" id="callsign" placeholder={flight.call_sign}/></td>   
-//           {/* <td> {flight.call_sign} </td>      */}
-//           <td> {flight.last_name} </td>     
-//           <td> {flight.aircraft_model} </td> 
-//           <td> {flight.tail_number} </td>
-//           <Success success={missionSuccess} landTime={flight.scheduled_landing_timestamp} />
-//           <td><button id="update" onClick={(e) => handleChange(e, flight.flight_id)}>Update</button></td>
-//           <td><button onClick={() => this.DeleteFlight(flight.flight_id)}>Delete</button></td>
-//         </tr>
-//       )
-//     });
-//     }
 
   render () {//builds the main page in react
     return (
       <div>
         <header>Asset Request</header>
         <h2> 
-          User ID: {this.state.userId}
+          User : {this.state.user.first_name} {this.state.user.last_name}
         </h2>
         <h2>Add New Request</h2>
         <this.NewRequest />
+        <h2>My Requests</h2>
+        <table>
+          <this.MyRequestsHeader />
+          <tbody>
+            <this.MyRequests />
+          </tbody>
+       
+        </table>
+
       </div>
     );
   }
