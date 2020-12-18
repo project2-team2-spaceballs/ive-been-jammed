@@ -4,7 +4,7 @@ class AssetRequest extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      userId: 4, //passed userId
+      userId: 2, //passed userId
       user: {}, //this is the entire user info from the database for the specified user
       satellites: [], //these are all of the available satellites
       userRequests: [], //these are all of the requests specific to the specified user
@@ -44,8 +44,6 @@ class AssetRequest extends React.Component {
 
   async componentDidMount () {//initial state
     this.updateUser();
-    var firstName = this.state.user.first_name;
-    console.log("userData: "+ firstName);
     this.updateRequests();
     this.updateMessages();
     
@@ -76,8 +74,11 @@ class AssetRequest extends React.Component {
       "text": "",
       "asset_request_id": 0,
     };
-    this.setState({newMessage: newMessage});
+    this.setState({newMessage: newMessage}); 
+    console.log("userData: "+ this.state.user.first_name);
   }
+  
+ 
 
   DateSetter = (d) => {//changes a date to DD MMM YYYY string format
     
@@ -118,41 +119,55 @@ class AssetRequest extends React.Component {
   //   )
   // }
 
+  SubmitNewMessage = async (newMessageId) => {
+    console.log('submiting new message');
+    console.log(this.state.newMessage);
+
+    this.setState(previousState => ({
+      newMessage: {
+      ...previousState.newMessage, 
+      asset_request_id: newMessageId,
+      time_stamp: new Date()  
+      }
+    }));
+
+    let newMessageBody =  JSON.stringify(this.state.newMessage);   
+    console.log("newMessageBody: " + newMessageBody);
+    await fetch('http://localhost:8080/asset-request/message', {
+      method: "POST",
+      headers: {'Content-Type': 'application/json'},
+      body: newMessageBody
+    }).then((res) => {
+        if (res.status === 200) {
+          this.updateMessages();
+        }
+    });
+
+  }
 
   SubmitNewRequest = async () => {//sends new request to db and forces refresh of state
+  
     console.log('submitting new request')
     console.log(this.state.newRequest);
-    let newMessageId;
-    var request = this.state.newRequest;
-    var requestBody = JSON.stringify(request);
+  
+    var requestBody = JSON.stringify(this.state.newRequest);
     await fetch('http://localhost:8080/asset-request/', {
       method: "POST",
       headers: {
-        'Content-Type': 'application/json'
-      },  
+              'Content-Type': 'application/json'
+                },  
       body: requestBody
     })
         .then((res) => res.json())
         .then((res) => {
-          newMessageId = parseInt(res);
+          this.SubmitNewMessage(parseInt(res));
         })
-        .then(this.updateRequests());
-
-    this.setState(previousState => ({
-      newMessage: {
-        ...previousState.newMessage, 
-        asset_request_id: newMessageId
-      }
-    }));        
-    await fetch('http://localhost:8080/asset-request/message/', {
-      method: "POST",
-      headers :{
-        'Content_Type': 'application/json'
-      },
-      body: JSON.stringify(this.newMessage)
-    })
-      .then(this.updateMessages());
-
+        .then((res) => {
+          if (res.status === 200) {
+            this.updateRequests();
+          }
+      }).catch((res) => alert(res.message));
+  
   }
 
   NewRequest = () => {//full function to set create the params for a new flight on the schedule
@@ -316,7 +331,7 @@ class AssetRequest extends React.Component {
   DisplayMessages = (requestId) => {//Displays the messages for each of the requests
     return this.state.messages.map(message => {
       if (message.asset_request_id === requestId) {
-          return <a> {message.text} </a>
+          return message.text
       }
     })
 
