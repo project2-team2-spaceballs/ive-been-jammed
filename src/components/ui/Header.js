@@ -45,6 +45,9 @@ const useStyles = makeStyles(theme => ({
     logo: {
         maxWidth: "160px",
         paddingRight: "20px"
+    },
+    background: {
+        ...theme.background
     }
 
 })) 
