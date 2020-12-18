@@ -40,6 +40,46 @@ class Logs extends React.Component {
             .catch((res) => alert(res.message));
     };
 
+    addComment = async (id, comment) => {
+        const body = {
+            logId: id, //camelcased due to Java API
+            details: comment,
+            comment_dtg: new Date().getTime(),
+        };
+        console.log(body);
+        const options = {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+        };
+        fetch("http://localhost:8080/logs/comments", options)
+            .then((res) => {
+                if (res.status === 200) {
+                    this.findComments(id);
+                }
+            })
+            .catch((res) => alert(res.message));
+    };
+
+    editEntry = async (id, edits) => {
+        const body = {
+            details: edits,
+        };
+        console.log(body);
+        const options = {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+        };
+        fetch("http://localhost:8080/logs/" + id, options)
+            .then((res) => {
+                if (res.status === 200) {
+                    this.updateEntries();
+                }
+            })
+            .catch((res) => alert(res.message));
+    };
+
     componentDidMount = async () => {
         this.updateEntries();
     };
@@ -57,7 +97,6 @@ class Logs extends React.Component {
             details: this.state.newDetails,
             entry_dtg: this.state.newDateTime.getTime(),
         };
-        console.log(JSON.stringify(body));
         const options = {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -67,6 +106,7 @@ class Logs extends React.Component {
             .then((res) => {
                 if (res.status === 200) {
                     this.updateEntries();
+                    this.setState({ newDetails: "", newDateTime: new Date() })
                 }
             })
             .catch((res) => alert(res.message));
@@ -86,6 +126,8 @@ class Logs extends React.Component {
                     logEntries={this.state.logEntries}
                     logComments={this.state.logComments}
                     getComments={this.findComments}
+                    handleSubmitComments={this.addComment}
+                    handleSubmitEdits={this.editEntry}
                     logHistory={this.state.logHistory}
                     getHistory={this.findHistory}
                 />
