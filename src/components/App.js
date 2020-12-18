@@ -1,3 +1,4 @@
+
 import React from 'react'
 import Header from '../components/ui/Header'
 import {ThemeProvider} from '@material-ui/styles'
@@ -12,5 +13,6 @@ function App() {
     </ThemeProvider>
   );
 }
+
 
 export default App;
