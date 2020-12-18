@@ -1,6 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import {Select, MenuItem, FormControl, InputLabel, makeStyles, TextField, Grid, Button} from '@material-ui/core'
 import axios from 'axios';
+import OpscapTable from './OpscapTable'
 
 const useStyles = makeStyles(theme => ({
 
@@ -46,7 +47,8 @@ const Opscap = () => {
 
              setStatus(prevState => ( {
                  ...prevState,
-                 details : ""
+                 details : "",
+                 mw_stat: 0
              }));
         
             
@@ -69,7 +71,7 @@ const Opscap = () => {
         
         <Grid item xs>
         <FormControl className={classes.formControl}>
-             <InputLabel>Radar Id</InputLabel>
+             <InputLabel >Radar Id</InputLabel>
             <Select onChange={handleChange} name="radar_id">
                 <MenuItem value={1}>1</MenuItem>
                 <MenuItem value={2}>2</MenuItem>
@@ -121,8 +123,8 @@ const Opscap = () => {
           name="details"
           value={status.details}
           id="filled-full-width"
-          label="Update MDA Change"
-          style={{ margin: 8 }}
+          label="Reason for OpsCap Change"
+          style={{ margin: 20}}
           fullWidth
           margin="normal"
           InputLabelProps={{
@@ -130,29 +132,33 @@ const Opscap = () => {
           }}
           variant="filled"
         /> 
-
-        <Button onClick={handleClick}>
-            Click me to update shit
+        
+        <Grid item xs container
+  direction="row"
+  justify="space-evenly"
+  alignItems="center">
+        <Button  onClick={handleClick} variant="outlined">
+            Update OpsCap Status
         </Button>
+
+        </Grid>
         
         
 
     </Grid>
     </form>
 
-    <h1> Missle Warning value {status.mw_stat} </h1> 
+    <h1> Current OPSCAP Status </h1> 
 
           
 
               
 
            
-           <h1> Missile defense Value {status.md_stat} </h1>
-           <h1> SDA Status Value {status.sda_stat} </h1>
-           <h1> Radar id Value {status.radar_id} </h1>
-           <h1> details {status.details} </h1>
-    
-    </div>
+
+           
+    <OpscapTable rows={statusArray} />
+    </div> 
     );
     
 };
