@@ -1,4 +1,5 @@
 import React from 'react';
+import SatelliteEntry from './SatelliteEntry'
 // import ReactDOM from 'react-dom';
 // import App from './components/App';
 // import reportWebVitals from './reportWebVitals';
@@ -12,6 +13,7 @@ class PosNeg extends React.Component {
       currentSatelliteFile: [],
       currentSatelliteAllPasses: [],
       currentSatellitePass: [],
+      posneg: [],
       //INPUTS
       currentSatelliteId: '',
       //SATELLITE DATA FIELDS
@@ -37,42 +39,37 @@ handleSatIdInput= (event) =>{
     this.setState({currentSatelliteId: event.target.value})
 }
 
-
 handleSatIdSubmit = async () => {
     fetch(`http://localhost:8080/satellites/${this.state.currentSatelliteId}`)
     .then((res) => res.json())
     .then((res) => {
-        this.setState({currentSatelliteFile: res})
-        this.setState({currentPeriod: res[0].period})
-        this.setState({currentInclination: res[0].inclination})
-        this.setState({currentElset: res[0].elset})
-        this.setState({currentRcs: res[0].rcs})
-        this.setState({currentMissionType: res[0].mission_type})
-        this.setState({currentStatus: res[0].status})
+      this.setState({currentSatelliteFile: res[0]})
+      this.setState({currentPeriod: res[0].period})
+      this.setState({currentInclination: res[0].inclination})
+      this.setState({currentElset: res[0].elset})
+      this.setState({currentRcs: res[0].rcs})
+      this.setState({currentMissionType: res[0].mission_type})
+      this.setState({currentStatus: res[0].status})
     })
-    .catch((res) => alert(res.message))
+    .catch((error) => alert("Please input a 5 digit Satellite Number"))
 }
 
-// async handleSatIdSubmit (event) {
-//     event.preventDefault()
-//     const currentSatIdResponse = await fetch(`http://localhost:8080/satellites/22010`, { headers : { 'Content-Type': 'application/json', 'Accept': 'application/json' }, mode: 'no-cors' })
-//     console.log(currentSatIdResponse)
-//     const currentSatIdJson = await currentSatIdResponse.json()
-//     console.log(currentSatIdJson)
-    // this.setState({currentSatelliteFile: currentSatIdJson[0]})
-    // this.setState({currentPeriod: currentSatIdJson[0].period})
-    // this.setState({currentInclination: currentSatIdJson[0].inclination})
-    // this.setState({currentElset: currentSatIdJson[0].elset})
-    // this.setState({currentRcs: currentSatIdJson[0].rcs})
-    // this.setState({currentMissionType: currentSatIdJson[0].mission_type})
-    // this.setState({currentStatus: currentSatIdJson[0].status})
+handlePassSubmit = async () => {
+  fetch(`http://localhost:8080/passes/${this.state.currentSatelliteId}`)
+  .then((res) => res.json())
+  .then((res) => {
+      this.setState({currentSatelliteAllPasses: res})
+  })
+  .catch((error) => alert(`No Upcoming Passes for Object ${this.state.currentSatelliteId}`))
+}
 
-    // const currentSatPassResponse = await fetch(`http://localhost:8080/passes/${this.state.currentSatelliteId}`, { mode: 'no-cors'})
-    // // const currentSatPassJson = await currentSatPassResponse.json()
-    // this.setState({currentSatelliteAllPasses: currentSatPassJson})
-
-// }
-
+handleAddToPosNeg = (event) => {
+  event.preventDefault()
+  // console.log(this.state.currentSatelliteFile)
+  // const tempPosNeg = this.state.posneg.push(this.state.currentSatelliteFile[0])
+  // console.log(tempPosNeg)
+  // this.setState({posneg: tempPosNeg})
+}
 
 
   //RENDER
@@ -83,6 +80,12 @@ handleSatIdSubmit = async () => {
               <p>Enter Sat Number</p>
               <input type="text" onChange={this.handleSatIdInput}/>
               <button onClick={this.handleSatIdSubmit.bind(this)}>Get Satellite Info</button>
+              <SatelliteEntry 
+              satFile = {this.state.currentSatelliteFile}
+              passesFile = {this.state.currentSatelliteAllPasses}
+              onPassSubmit = {this.handlePassSubmit}
+              onAddToPosNeg = {this.handleAddToPosNeg}
+              />
           </div>
       )
 
