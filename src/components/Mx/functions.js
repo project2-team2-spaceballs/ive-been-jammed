@@ -28,3 +28,9 @@ export default async function mxSearch(searchtext){
         headers: { 'Content-Type': 'application/json' }
     })
 }
+
+export default function formEntryHandler(e){
+    this.setState({[e.target.name]: e.target.value})
+}
+
+
