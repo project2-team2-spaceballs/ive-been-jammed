@@ -6,7 +6,9 @@ import theme from './ui/Theme'
 import Mx from './Mx/Mx'
 import Logs from './logs/Logs'
 import AssetRequest from './assetRequest/AssetRequest'
+import PosNeg from './posneg/posneg'
 import {Route,Switch, BrowserRouter} from 'react-router-dom'
+
 
 function App() {
   return (
@@ -17,6 +19,7 @@ function App() {
       <Route path='/mx'><Mx/></Route>
       <Route path='/logs'><Logs/></Route>
       <Route path='/assetrequest'><AssetRequest/></Route>
+      <Route path='/posneg'><PosNeg/></Route>
       </Switch>
       </BrowserRouter>
     </ThemeProvider>
