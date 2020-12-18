@@ -70,8 +70,7 @@ handleAddToPosNeg = (event) => {
   // console.log(tempPosNeg)
   // this.setState({posneg: tempPosNeg})
 }
-/////OH BOY\
-/////SECOND TRY
+
 
   //RENDER
   render(){
