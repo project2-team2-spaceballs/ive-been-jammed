@@ -1,5 +1,6 @@
-import React, {useState} from 'react';
-import {Select, MenuItem, FormControl, InputLabel, makeStyles, TextField, Grid, Paper} from '@material-ui/core'
+import React, {useState, useEffect} from 'react';
+import {Select, MenuItem, FormControl, InputLabel, makeStyles, TextField, Grid, Button} from '@material-ui/core'
+import axios from 'axios';
 
 const useStyles = makeStyles(theme => ({
 
@@ -9,29 +10,49 @@ const useStyles = makeStyles(theme => ({
 
 }));
 
-// const statusfields = {
-//     id: 0,
-//     radar_id: "",
-//     mw_status: 4,
-//     md_status: "",
-//     sda_status: "",
-//     details: ""
-// }
+const statusfields = {
+    radar_id: "",
+    mw_stat: "",
+    md_stat: "",
+    sda_stat: "",
+    details: ""
+}
 
 const Opscap = () => {
     const classes = useStyles();
-    const [status, setStatus] = useState("");
-    const [mdStatus, setmdStatus] = useState("");
-    const [sdaStatus, setsdaStatus] = useState("");
-    const [radarId, setradarId] = useState("")
+    const [status, setStatus] = useState(statusfields);
+    const [visibile, setVisible] = useState(true);
+   
+    const handleChange = (event) => setStatus(prevState => ({
+        ...prevState,
+        [event.target.name]: event.target.value
 
-    const handleChange = (event) => setStatus(event.target.value);
-    const handleChange1 = (event) => setmdStatus(event.target.value);
-    const handleChange2 = (event) => setsdaStatus(event.target.value);
-    const handleChange3 = (event) => setradarId(event.target.value);
+    }));
 
-    const onSubmit = () => {
+    
 
+    
+
+   
+ 
+
+    const handleClick = () => {
+        
+        
+        console.log("This shit worked")
+        console.log(status);
+        axios.post("http://localhost:8080/opscap", status)
+            .then(response => {
+                console.log(response)
+            })
+            .catch(error => {
+                console.log(error)
+            })
+
+             setStatus(prevState => ( {
+                 ...prevState,
+                 details : ""
+             }));
 
     }
 
@@ -44,13 +65,14 @@ const Opscap = () => {
 
     return (
     <div className={classes.root} style={{paddingTop : 100}}>
+        <form > 
         <Grid container spacing={3}>
         
         
         <Grid item xs>
         <FormControl className={classes.formControl}>
              <InputLabel>Radar Id</InputLabel>
-            <Select onChange={handleChange3}>
+            <Select onChange={handleChange} name="radar_id">
                 <MenuItem value={1}>1</MenuItem>
                 <MenuItem value={2}>2</MenuItem>
                 <MenuItem value={3}>3</MenuItem>
@@ -62,7 +84,7 @@ const Opscap = () => {
         <Grid item xs>   
          <FormControl className={classes.formControl}>
              <InputLabel>Missle Warning Status</InputLabel>
-            <Select onChange={handleChange}>
+            <Select onChange={handleChange} name="mw_stat">
                 <MenuItem value={1}>Red</MenuItem>
                 <MenuItem value={2}>Yellow</MenuItem>
                 <MenuItem value={3}>Green</MenuItem>
@@ -74,7 +96,7 @@ const Opscap = () => {
         <Grid item xs>  
         <FormControl className={classes.formControl}>
             <InputLabel>Missle Defense Status</InputLabel>
-            <Select onChange={handleChange1}>
+            <Select onChange={handleChange} name="md_stat">
                 <MenuItem value={1}>Red</MenuItem>
                 <MenuItem value={2}>Yellow</MenuItem>
                 <MenuItem value={3}>Green</MenuItem>
@@ -86,7 +108,7 @@ const Opscap = () => {
         <Grid item xs>  
         <FormControl className={classes.formControl}>
             <InputLabel>SDA Status</InputLabel>
-            <Select onChange={handleChange2}>
+            <Select onChange={handleChange} name="sda_stat">
                 <MenuItem value={1}>Red</MenuItem>
                 <MenuItem value={2}>Yellow</MenuItem>
                 <MenuItem value={3}>Green</MenuItem>
@@ -95,9 +117,11 @@ const Opscap = () => {
         </FormControl>
         </Grid>
 
-       
+             
         <TextField
-          onChange
+          onChange={handleChange}
+          name="details"
+          value={status.details}
           id="filled-full-width"
           label="Update MDA Change"
           style={{ margin: 8 }}
@@ -107,16 +131,23 @@ const Opscap = () => {
             shrink: true,
           }}
           variant="filled"
-        />
+        /> 
+
+        <Button onClick={handleClick}>
+            Click me to update shit
+        </Button>
+        
         
 
     </Grid>
+    </form>
            
 
-           <h1> Missle Warning value {status} </h1> 
-           <h1> Missile defense Value {mdStatus} </h1>
-           <h1> SDA Status Value {sdaStatus} </h1>
-           <h1> Radar id Value {radarId} </h1>
+           <h1> Missle Warning value {status.mw_stat} </h1> 
+           <h1> Missile defense Value {status.md_stat} </h1>
+           <h1> SDA Status Value {status.sda_stat} </h1>
+           <h1> Radar id Value {status.radar_id} </h1>
+           <h1> details {status.details} </h1>
         </div>
     );
 };
