@@ -8,6 +8,7 @@ import Tabs from '@material-ui/core/Tabs'
 import Tab from '@material-ui/core/Tab'
 import LoginMenu from './LoginMenu'
 import logo from '../assets/logo.png'
+import {Link,Router} from 'react-router-dom'
 
 function ElevationScroll(props) {
     const { children} = props;
@@ -68,11 +69,11 @@ export default function Header(props){
                     </Typography>
                     <Tabs className={classes.tabContainer} centered onChange={handleChange} value={value}>
                         <Tab className={classes.tab} label="Home" />
-                        <Tab className={classes.tab} label="OpsCap" />
-                        <Tab className={classes.tab} label="Logs" />
-                        <Tab className={classes.tab} label="MX" />
-                        <Tab className={classes.tab} label="Pos/Neg" />
-                        <Tab className={classes.tab} label="Asset Task" />
+                        <Tab component={Link} to={'/opscap'} className={classes.tab} label="OpsCap" />
+                        <Tab component={Link} to={'/logs'} className={classes.tab} label="Logs" />
+                        <Tab component={Link} to={'/mx'} className={classes.tab} label="MX" />
+                        <Tab component={Link} to={'/posneg'} className={classes.tab} label="Pos/Neg" />
+                        <Tab component={Link} to={'/assetrequest'} className={classes.tab} label="Asset Task" />
                     </Tabs>
                 <LoginMenu/>
                 </Toolbar>
