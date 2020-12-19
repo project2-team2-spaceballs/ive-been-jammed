@@ -42,23 +42,19 @@ class AssetRequest extends React.Component {
         .catch((res) => alert(res.message));
   };
 
-  async componentDidMount () {//initial state
-    this.updateUser();
-    this.updateRequests();
-    this.updateMessages();
-    
+  updateSatellites = async () => {
+    fetch(`http://localhost:8080/satellites`)
+        .then((res) => res.json())
+        .then((res) => {
+            this.setState({ satellites: res });
+        })
+        .catch((res) => alert(res.message));
+  };
 
-    // var response2 = await fetch('http://localhost:8080/asset-request/userId/'+this.state.userId, { credentials : 'include', mode: 'cors' });
-    // // const requestsBody = await response2.json();
-    // this.setState({userRequests: response2})
-
-    // var response3 = await fetch('http://localhost:8080/satellites/', { credentials : 'include', mode: 'cors' }) //get the current list of satellites
-    // const satellitesBody = await response3.json();
-    // this.setState({satellites: satellitesBody});
-
+  initialState = () => {
     let newRequest = {
       "userId": this.state.userId,
-      "sat_id": 37,
+      "sat_id": 22010,
       "pass_start": new Date(),
       "pass_stop": new Date(),
       "latitude": 0,
@@ -66,6 +62,7 @@ class AssetRequest extends React.Component {
       "elevation": 0,
       "status": "pending"
     };
+    
     this.setState({newRequest: newRequest});
 
     let newMessage = {
@@ -74,11 +71,20 @@ class AssetRequest extends React.Component {
       "text": "",
       "asset_request_id": 0,
     };
+    
     this.setState({newMessage: newMessage}); 
+    
     console.log("userData: "+ this.state.user.first_name);
   }
-  
- 
+
+  async componentDidMount () {//initial state
+    await this.updateUser()
+    .then(this.updateRequests())
+    .then(this.updateMessages())
+    .then(this.updateSatellites())
+    .then(this.initialState());
+  }
+   
 
   DateSetter = (d) => {//changes a date to DD MMM YYYY string format
     
@@ -146,10 +152,14 @@ class AssetRequest extends React.Component {
   }
 
   SubmitNewRequest = async () => {//sends new request to db and forces refresh of state
-  
+
+    let satelliteIndex = this.state.satellites.findIndex(satellite => satellite.id === this.state.newRequest.sat_id); 
+    console.log("Sat_index:" + satelliteIndex);
+    console.log("MissionType: " + this.state.satellites[satelliteIndex].missionType)
+
     console.log('submitting new request')
     console.log(this.state.newRequest);
-  
+
     var requestBody = JSON.stringify(this.state.newRequest);
     await fetch('http://localhost:8080/asset-request/', {
       method: "POST",
@@ -166,13 +176,14 @@ class AssetRequest extends React.Component {
           if (res.status === 200) {
             this.updateRequests();
           }
-      }).catch((res) => alert(res.message));
+      });
   
   }
 
   NewRequest = () => {//full function to set create the params for a new flight on the schedule
  
- 
+
+
     const handleChange = (event) => {//handles the ongoing changes for each of the inputs for creating new flight
       if (event.target.id === "StartDate") {
         let date = event.target.value;
@@ -253,6 +264,25 @@ class AssetRequest extends React.Component {
         }));
       }
 
+      if (event.target.id === "satellites") {
+        this.setState(previousState => ({
+          newRequest: {
+            ...previousState.newRequest, 
+            sat_id: parseInt(event.target.value)
+          }
+        }));
+
+      }
+
+      // if (event.target.id === "missionType") {
+      //   this.setState(previousState => ({
+      //     newRequest: {
+      //       ...previousState.newRequest, 
+      //       sat_id: parseInt(event.target.value)
+      //     }
+      //   }));
+      // }
+
       if (event.target.id === "notes") {
         this.setState(previousState => ({
           newMessage: {
@@ -268,8 +298,8 @@ class AssetRequest extends React.Component {
         <table>
           <thead>
             <tr>
-              <th>Mission Type</th>
               <th>Satellite</th>
+              <th>Mission Type</th>
               <th>Start Date</th>
               <th>Start Time</th>
               <th>Stop Date</th>
@@ -284,14 +314,17 @@ class AssetRequest extends React.Component {
           <tbody>
   
               <tr>
-                <td> On-Orbit Missile Battery</td>
-                {/* <td>
-                  <select id="satellites" onChange={handleChange} >
-                    {this.state.satellites.map(satellite => <option id="satellite" value={satellite.id}> {satellite.id} </option>)}
+                <td>
+                    <select id="satellites" onChange={handleChange}> 
+                      {this.state.satellites.map(satellite => <option id="satellite" value={satellite.id}> {satellite.id} </option> )}
+                    </select>
+                </td> 
+                <td>
+                  <select id="missionType" onChange={handleChange} >
+                    {this.state.satellites.map(satellite => <option id="missionType" value={satellite.missionType}> {satellite.missionType} </option>)}
                 </select>
-                </td>  */}
-                <td> 25891 </td>
-                <td><form onChange={handleChange}><input type="date" id="StartDate" start={new Date()} ></input> </form></td>
+                </td> 
+                <td><form onChange={handleChange} placeholder={new Date()}><input type="date" id="StartDate" start={new Date()} ></input> </form></td>
                 <td><form onChange={handleChange}> <input type="time" id="StartTime" /></form></td>
                 <td><form onChange={handleChange}><input type="date" id="StopDate" start={new Date()} ></input> </form></td>
                 <td><form onChange={handleChange}> <input type="time" id="StopTime" /></form></td>
@@ -312,8 +345,8 @@ class AssetRequest extends React.Component {
       return(
           <thead>
             <tr>
-              <th>Mission Type</th>
               <th>Satellite</th>
+              <th>Mission Type</th>
               <th>Start Date</th>
               <th>Start Time</th>
               <th>Stop Date</th>
@@ -329,6 +362,7 @@ class AssetRequest extends React.Component {
   }
   
   DisplayMessages = (requestId) => {//Displays the messages for each of the requests
+    console.log("requestId: " + requestId);
     return this.state.messages.map(message => {
       if (message.asset_request_id === requestId) {
           return message.text
@@ -337,22 +371,35 @@ class AssetRequest extends React.Component {
 
   }
 
+  DisplayMissionType = (satId) => {
+    console.log("satId: " + satId);
+    let missionType;
+    let satIndex = this.state.satellites.map(satellite => {
+      if (satellite.id === satId) {
+        missionType = satellite.missionType;
+      };
+    });
+    console.log("missionType: " + missionType);
+    return missionType;
+  }
+
   MyRequests = () => {//just the header for current user's requests
     return this.state.userRequests.map(request => {
+
       return(
 
               <tr>
-                <td> On-Orbit Missile Battery</td>
-                <td> 25891 </td>
-                <td>{this.DateSetter(request.pass_start)}</td>
-                <td>{this.TimeSetter(request.pass_start)}</td>
-                <td>{this.DateSetter(request.pass_stop)}</td>
-                <td>{this.TimeSetter(request.pass_stop)}</td>
-                <td>{request.latitude}</td>
-                <td>{request.longitude}</td>
-                <td>{request.elevation}</td>
-                <td>{request.status}</td>
-                <td>{this.DisplayMessages(request.id)}</td>
+                <td> {request.sat_id} </td>
+                <td> {this.DisplayMissionType(request.sat_id)}</td>
+                <td> {this.DateSetter(request.pass_start)}</td>
+                <td> {this.TimeSetter(request.pass_start)}</td>
+                <td> {this.DateSetter(request.pass_stop)}</td>
+                <td> {this.TimeSetter(request.pass_stop)}</td>
+                <td> {request.latitude}</td>
+                <td> {request.longitude}</td>
+                <td> {request.elevation}</td>
+                <td> {request.status}</td>
+                <td> {this.DisplayMessages(request.id)}</td>
               </tr>  
             )
 
