@@ -1,5 +1,6 @@
 import React from 'react';
 import SatelliteEntry from './SatelliteEntry'
+import ViewPosNeg from './ViewPosNeg'
 // import ReactDOM from 'react-dom';
 // import App from './components/App';
 // import reportWebVitals from './reportWebVitals';
@@ -13,23 +14,12 @@ class PosNeg extends React.Component {
       currentSatelliteFile: [],
       currentSatelliteAllPasses: [],
       currentSatellitePass: [],
+      tempPosNeg:[],
+      tempPasses:[],
       posneg: [],
+      passes: [],
       //INPUTS
-      currentSatelliteId: '',
-      //SATELLITE DATA FIELDS
-      currentPeriod: '',
-      currentInclination: '',
-      currentElset: '',
-      currentRcs: '',
-      currentMissionType: '',
-      currentStatus: '',
-      //PASS DATA FIELDS
-      currentPassId: '',
-      currentPassStart: '',
-      currentPassStop: '',
-      currentPassToes: '',
-      currentPassNK: '',
-      currentPassK: ''
+      currentSatelliteId: ''
     }
   }
 
@@ -44,12 +34,6 @@ handleSatIdSubmit = async () => {
     .then((res) => res.json())
     .then((res) => {
       this.setState({currentSatelliteFile: res[0]})
-      this.setState({currentPeriod: res[0].period})
-      this.setState({currentInclination: res[0].inclination})
-      this.setState({currentElset: res[0].elset})
-      this.setState({currentRcs: res[0].rcs})
-      this.setState({currentMissionType: res[0].mission_type})
-      this.setState({currentStatus: res[0].status})
     })
     .catch((error) => alert("Please input a 5 digit Satellite Number"))
 }
@@ -65,10 +49,22 @@ handlePassSubmit = async () => {
 
 handleAddToPosNeg = (event) => {
   event.preventDefault()
-  // console.log(this.state.currentSatelliteFile)
-  // const tempPosNeg = this.state.posneg.push(this.state.currentSatelliteFile[0])
-  // console.log(tempPosNeg)
-  // this.setState({posneg: tempPosNeg})
+  this.state.tempPosNeg.push(this.state.currentSatelliteFile)
+  this.state.tempPasses.push(this.state.currentSatelliteAllPasses)
+  this.setState({posneg: this.state.tempPosNeg})
+  this.setState({passes: this.state.tempPasses})
+}
+
+handleRemoveFromPosNeg = (event) => {
+  event.preventDefault()
+  var length = this.state.tempPosNeg.length;
+  for(var i=0; i < length; i++){
+    console.log(this.state.tempPosNeg[i].id)
+    if(this.state.tempPosNeg[i].id == this.state.currentSatelliteId){
+      this.state.tempPosNeg.splice(i,1)
+    }
+  }
+  this.setState({posneg: this.state.tempPosNeg})
 }
 
 
@@ -77,14 +73,21 @@ handleAddToPosNeg = (event) => {
       return(
           <div>
               <h1>Virtual POS/NEG</h1>
-              <p>Enter Sat Number</p>
-              <input type="text" onChange={this.handleSatIdInput}/>
-              <button onClick={this.handleSatIdSubmit.bind(this)}>Get Satellite Info</button>
+              <ViewPosNeg 
+              posNegArray = {this.state.posneg}
+              passesArray = {this.state.passes}
+              onPassSubmit = {this.handlePassSubmit}
+              
+              />
+              <h2>Look Up Satellite</h2>
+              <input type="text" placeholder="Enter 5 Digit SatNo: XXXXX" onChange={this.handleSatIdInput}/>
+              <button onClick={this.handleSatIdSubmit.bind(this)}>Load Satellite & Passes Info</button>
               <SatelliteEntry 
               satFile = {this.state.currentSatelliteFile}
               passesFile = {this.state.currentSatelliteAllPasses}
               onPassSubmit = {this.handlePassSubmit}
               onAddToPosNeg = {this.handleAddToPosNeg}
+              onRemoveFromPosNeg = {this.handleRemoveFromPosNeg}
               />
           </div>
       )
