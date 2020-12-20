@@ -4,19 +4,33 @@ class AssetRequest extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      userId: 2, //passed userId
+      userId: 1, //passed userId
       user: {}, //this is the entire user info from the database for the specified user
       satellites: [], //these are all of the available satellites
       userRequests: [], //these are all of the requests specific to the specified user
       messages: [], //so far these are all of the messages for all of the requests not filtered at this point
-      newRequest: {}, //this allows setting the params to add a new request
-      newMessage: {}
+      newRequest: {//this allows setting the params to add a new request
+        "userId": 2,
+        "sat_id": 22010,
+        "pass_start": new Date(),
+        "pass_stop": new Date(),
+        "latitude": 0,
+        "longitude": 0,
+        "elevation": 0,
+        "status": "pending"
+      }, 
+      newMessage: {
+        "user_id": 2,
+        "time_stamp": new Date(),
+        "text": "",
+        "asset_request_id": 0,
+      }
     }
   }
   
 
   updateUser = async () => {
-    fetch(`http://localhost:8080/users/${this.state.userId}`)
+    await fetch(`http://localhost:8080/users/${this.state.userId}`)
         .then((res) => res.json())
         .then((res) => {
             this.setState({ user: res });
@@ -25,7 +39,7 @@ class AssetRequest extends React.Component {
   };
 
   updateRequests = async () => {
-    fetch(`http://localhost:8080/asset-request/userId/${this.state.userId}`)
+    await fetch(`http://localhost:8080/asset-request/userId/${this.state.userId}`)
         .then((res) => res.json())
         .then((res) => {
             this.setState({ userRequests: res });
@@ -34,7 +48,7 @@ class AssetRequest extends React.Component {
   };
 
   updateMessages = async () => {
-    fetch(`http://localhost:8080/asset-request/message`)
+    await fetch(`http://localhost:8080/asset-request/message`)
         .then((res) => res.json())
         .then((res) => {
             this.setState({ messages: res });
@@ -43,7 +57,7 @@ class AssetRequest extends React.Component {
   };
 
   updateSatellites = async () => {
-    fetch(`http://localhost:8080/satellites`)
+    await fetch(`http://localhost:8080/satellites`)
         .then((res) => res.json())
         .then((res) => {
             this.setState({ satellites: res });
@@ -51,38 +65,12 @@ class AssetRequest extends React.Component {
         .catch((res) => alert(res.message));
   };
 
-  initialState = () => {
-    let newRequest = {
-      "userId": this.state.userId,
-      "sat_id": 22010,
-      "pass_start": new Date(),
-      "pass_stop": new Date(),
-      "latitude": 0,
-      "longitude": 0,
-      "elevation": 0,
-      "status": "pending"
-    };
-    
-    this.setState({newRequest: newRequest});
 
-    let newMessage = {
-      "user_id": this.state.userId,
-      "time_stamp": new Date(),
-      "text": "",
-      "asset_request_id": 0,
-    };
-    
-    this.setState({newMessage: newMessage}); 
-    
-    console.log("userData: "+ this.state.user.first_name);
-  }
-
-  async componentDidMount () {//initial state
+  componentDidMount = async () => {//initial state
     await this.updateUser()
-    .then(this.updateRequests())
-    .then(this.updateMessages())
-    .then(this.updateSatellites())
-    .then(this.initialState());
+          .then(this.updateRequests())
+          .then(this.updateMessages())
+          .then(this.updateSatellites());
   }
    
 
@@ -126,9 +114,6 @@ class AssetRequest extends React.Component {
   // }
 
   SubmitNewMessage = async (newMessageId) => {
-    console.log('submiting new message');
-    console.log(this.state.newMessage);
-
     this.setState(previousState => ({
       newMessage: {
       ...previousState.newMessage, 
@@ -138,7 +123,6 @@ class AssetRequest extends React.Component {
     }));
 
     let newMessageBody =  JSON.stringify(this.state.newMessage);   
-    console.log("newMessageBody: " + newMessageBody);
     await fetch('http://localhost:8080/asset-request/message', {
       method: "POST",
       headers: {'Content-Type': 'application/json'},
@@ -153,13 +137,6 @@ class AssetRequest extends React.Component {
 
   SubmitNewRequest = async () => {//sends new request to db and forces refresh of state
 
-    let satelliteIndex = this.state.satellites.findIndex(satellite => satellite.id === this.state.newRequest.sat_id); 
-    console.log("Sat_index:" + satelliteIndex);
-    console.log("MissionType: " + this.state.satellites[satelliteIndex].missionType)
-
-    console.log('submitting new request')
-    console.log(this.state.newRequest);
-
     var requestBody = JSON.stringify(this.state.newRequest);
     await fetch('http://localhost:8080/asset-request/', {
       method: "POST",
@@ -168,22 +145,25 @@ class AssetRequest extends React.Component {
                 },  
       body: requestBody
     })
-        .then((res) => res.json())
-        .then((res) => {
+    .then((res) => res.json())
+    .then((res) => {
           this.SubmitNewMessage(parseInt(res));
-        })
-        .then((res) => {
-          if (res.status === 200) {
-            this.updateRequests();
-          }
-      });
-  
+    });
+
+    this.updateRequests();
+
+  }
+
+  DeleteRequest = async (requestId) => {//deletes a flight based on the flight_id
+    let url = 'http://localhost:8080/asset-request/' + requestId;
+    await fetch(url, {
+      method: "DELETE"
+    });
+    this.updateRequests();
   }
 
   NewRequest = () => {//full function to set create the params for a new flight on the schedule
  
-
-
     const handleChange = (event) => {//handles the ongoing changes for each of the inputs for creating new flight
       if (event.target.id === "StartDate") {
         let date = event.target.value;
@@ -274,11 +254,11 @@ class AssetRequest extends React.Component {
 
       }
 
-      // if (event.target.id === "missionType") {
+      // if (event.target.id === "missionType") { //for future use
       //   this.setState(previousState => ({
       //     newRequest: {
       //       ...previousState.newRequest, 
-      //       sat_id: parseInt(event.target.value)
+      //       missionType: event.target.value
       //     }
       //   }));
       // }
@@ -319,11 +299,7 @@ class AssetRequest extends React.Component {
                       {this.state.satellites.map(satellite => <option id="satellite" value={satellite.id}> {satellite.id} </option> )}
                     </select>
                 </td> 
-                <td>
-                  <select id="missionType" onChange={handleChange} >
-                    {this.state.satellites.map(satellite => <option id="missionType" value={satellite.missionType}> {satellite.missionType} </option>)}
-                </select>
-                </td> 
+                <td> {this.DisplayMissionType(this.state.newRequest.sat_id)}</td>
                 <td><form onChange={handleChange} placeholder={new Date()}><input type="date" id="StartDate" start={new Date()} ></input> </form></td>
                 <td><form onChange={handleChange}> <input type="time" id="StartTime" /></form></td>
                 <td><form onChange={handleChange}><input type="date" id="StopDate" start={new Date()} ></input> </form></td>
@@ -338,6 +314,29 @@ class AssetRequest extends React.Component {
         </table>
       
       )
+  }
+  
+  DisplayMessages = (requestId) => {//Displays the messages for each of the requests
+
+    return this.state.messages.map(message => {
+      if (message.asset_request_id === requestId) {
+          return message.text
+      }
+    })
+
+  }
+
+  DisplayMissionType = (satId) => {
+
+    let missionType;
+    this.state.satellites.map(satellite => {
+      if (satellite.id === satId) {
+        missionType = satellite.missionType;
+        return missionType;
+      };
+    });
+
+    return missionType;
   }
 
   MyRequestsHeader = () => {//just the header for current user's requests
@@ -356,31 +355,10 @@ class AssetRequest extends React.Component {
               <th>Elevation</th>
               <th>Status</th>
               <th>Notes</th>
+              <th>Delete</th>
             </tr>
           </thead>
       )
-  }
-  
-  DisplayMessages = (requestId) => {//Displays the messages for each of the requests
-    console.log("requestId: " + requestId);
-    return this.state.messages.map(message => {
-      if (message.asset_request_id === requestId) {
-          return message.text
-      }
-    })
-
-  }
-
-  DisplayMissionType = (satId) => {
-    console.log("satId: " + satId);
-    let missionType;
-    let satIndex = this.state.satellites.map(satellite => {
-      if (satellite.id === satId) {
-        missionType = satellite.missionType;
-      };
-    });
-    console.log("missionType: " + missionType);
-    return missionType;
   }
 
   MyRequests = () => {//just the header for current user's requests
@@ -400,32 +378,13 @@ class AssetRequest extends React.Component {
                 <td> {request.elevation}</td>
                 <td> {request.status}</td>
                 <td> {this.DisplayMessages(request.id)}</td>
+                <td><button onClick={() => this.DeleteRequest(request.id)} >Delete</button></td>
               </tr>  
             )
 
     })
   }
-//   DeleteFlight = async (flight_id) => {//deletes a flight based on the flight_id
-//     let url = 'http://localhost:8081/flightschedule/' + flight_id;
-//     await fetch(url, {
-//       method: "DELETE"
-//     })
-//     this.BuildScheduleForDate()
- 
-//   }
 
-//   UpdateFlight = async (updatedFlight) => {
-//     console.log('submitting new flight: ' + updatedFlight.callSign + updatedFlight.takeoffTime)
-//     // console.log(this.state.newFlight.indexOf(flight_id))
-//     await fetch('http://localhost:8081/flightschedule/', {
-//       method: "PATCH",
-//       headers: {
-//         'Content-Type': 'application/json'
-//       },  
-//       body: JSON.stringify(updatedFlight)
-//     }).then(this.BuildScheduleForDate)
-//   }
-  
 
 
   render () {//builds the main page in react
@@ -433,7 +392,7 @@ class AssetRequest extends React.Component {
       <div>
         <header>Asset Request</header>
         <h2> 
-          User : {this.state.user.first_name} {this.state.user.last_name}
+          Welcome {this.state.user.first_name} {this.state.user.last_name}
         </h2>
         <h2>Add New Request</h2>
         <this.NewRequest />
@@ -443,9 +402,7 @@ class AssetRequest extends React.Component {
           <tbody>
             <this.MyRequests />
           </tbody>
-       
         </table>
-
       </div>
     );
   }
