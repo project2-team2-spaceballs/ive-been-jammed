@@ -4,12 +4,12 @@ class AssetRequest extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      userId: 2, //passed userId
+      userId: 1, //passed userId
       user: {}, //this is the entire user info from the database for the specified user
       satellites: [], //these are all of the available satellites
       userRequests: [], //these are all of the requests specific to the specified user
       messages: [], //so far these are all of the messages for all of the requests not filtered at this point
-      newRequest: {
+      newRequest: {//this allows setting the params to add a new request
         "userId": 2,
         "sat_id": 22010,
         "pass_start": new Date(),
@@ -18,7 +18,7 @@ class AssetRequest extends React.Component {
         "longitude": 0,
         "elevation": 0,
         "status": "pending"
-      }, //this allows setting the params to add a new request
+      }, 
       newMessage: {
         "user_id": 2,
         "time_stamp": new Date(),
@@ -254,7 +254,7 @@ class AssetRequest extends React.Component {
 
       }
 
-      // if (event.target.id === "missionType") {
+      // if (event.target.id === "missionType") { //for future use
       //   this.setState(previousState => ({
       //     newRequest: {
       //       ...previousState.newRequest, 
@@ -379,7 +379,6 @@ class AssetRequest extends React.Component {
                 <td> {request.status}</td>
                 <td> {this.DisplayMessages(request.id)}</td>
                 <td><button onClick={() => this.DeleteRequest(request.id)} >Delete</button></td>
-                {/* <td> <button onClick={this.DeleteRequest(request.id)} value="Delete Request">Delete Request</button>  </td> */}
               </tr>  
             )
 
