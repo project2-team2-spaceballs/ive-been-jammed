@@ -72,6 +72,7 @@ const Entries = (props) => {
                     {editEntry ? (
                         <EditEntry
                             log_id={n}
+                            log_details={entry.details}
                             handleSubmit={props.handleSubmitEdits}
                         />
                     ) : (
