@@ -9,7 +9,6 @@ import AssetRequest from './assetRequest/AssetRequest'
 import PosNeg from './posneg/posneg'
 import {Route,Switch, BrowserRouter} from 'react-router-dom'
 import Opscap from './opscap/Opscap'
-import PosNeg from './posneg/posneg'
 import Home from './Home'
 
 
