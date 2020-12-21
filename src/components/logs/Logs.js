@@ -63,11 +63,12 @@ class Logs extends React.Component {
 
     editEntry = async (id, edits) => {
         const body = {
+            id: id,
             details: edits,
         };
         console.log(body);
         const options = {
-            method: "PATCH",
+            method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(body),
         };
