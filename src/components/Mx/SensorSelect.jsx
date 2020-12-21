@@ -11,6 +11,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import MenuList from '@material-ui/core/MenuList';
 import {MxContext} from './MxProvider'
 import {useContext} from 'react'
+import zIndex from '@material-ui/core/styles/zIndex';
 
 const options= ["All", "Sensor1","Sensor2","Sensor3"]
 
@@ -26,7 +27,7 @@ export default function SensorSelect() {
   const handleMenuItemClick = (event, index) => {
     setSelectedIndex(index);
     setOpen(false);
-    context.setSensor(options[selectedIndex])
+    context.setSensor(options[index])
   };
 
   const handleToggle = () => {
