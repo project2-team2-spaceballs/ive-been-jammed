@@ -9,7 +9,7 @@ import Paper from '@material-ui/core/Paper';
 import Popper from '@material-ui/core/Popper';
 import MenuItem from '@material-ui/core/MenuItem';
 import MenuList from '@material-ui/core/MenuList';
-import MxContext from './MxProvider'
+import {MxContext} from './MxProvider'
 import {useContext} from 'react'
 
 const options= ["All", "Sensor1","Sensor2","Sensor3"]

@@ -1,14 +1,9 @@
 import React from 'react'
 
-export const MxContext = React.createContext();
-// const useStyles = makeStyles(()=>(
-//     {
-//         paper:{
-//             backgroundColor:'#263238'
-//         }
-//     }
-// ))
-
+export const MxContext = React.createContext({  setSensor:()=>{},
+                                                mxRequest:()=>{},
+                                                mxSearch: ()=>{},
+                                                mxFetch: ()=>{}});
 export default class MxProvider extends React.Component{
     state={ sensor:"All",
             MxTasks:[],
@@ -22,16 +17,17 @@ export default class MxProvider extends React.Component{
     async mxFetch(select) {
         var data;
         if(select==="All"){
-            data= await fetch('http://localhost:8000/mx/all')
+            data= await fetch('http://localhost:8080/mx/all')
             data= await data.json()
         } else {
-            data= await fetch(`http://localhost:8000/mx/sensor/${select}`)
+            data= await fetch(`http://localhost:8080/mx/sensor/${select}`)
+            data= await data.json()
         }
-        return data
+        this.setState({MxTasks: data})
     }
     
     async mxRequest(formjson){
-        await fetch('http://localhost:8000/mx/request', {
+        await fetch('http://localhost:8080/mx/request', {
             method: 'POST',
             body:JSON.stringify(this.state.formjson),
             headers: { 'Content-Type': 'application/json' }
@@ -39,7 +35,7 @@ export default class MxProvider extends React.Component{
     }
     
     async mxSearch(searchtext){
-        let data=await fetch(`http://localhost:8000/mx/search?searchstring=${searchtext}`)
+        let data=await fetch(`http://localhost:8080/mx/search?searchstring=${searchtext}`)
     }
     // formEntryHandler(e){
     //     this.setState({[e.target.name]: e.target.value})
@@ -47,10 +43,10 @@ export default class MxProvider extends React.Component{
     render(){
         return(
             <MxContext.Provider value={{   state:   this.state,
-                                                    setSensor: this.setSensor,
-                                                    mxRequest: this.mxRequest,
-                                                    mxSearch: this.mxSearch,
-                                                    mxFetch: this.mxFetch,
+                                                    setSensor: this.setSensor.bind(this),
+                                                    mxRequest: this.mxRequest.bind(this),
+                                                    mxSearch: this.mxSearch.bind(this),
+                                                    mxFetch: this.mxFetch.bind(this),
 //                                                    formEntryHandler:this.formEntryHandler()
                                         }}>
             {this.props.children}                                
