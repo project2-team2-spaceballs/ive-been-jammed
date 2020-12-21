@@ -19,7 +19,7 @@ const useStyles = makeStyles((theme) => ({
 const EditEntry = (props) => {
     const classes = useStyles();
     // const [selectedDate, setSelectedDate] = useState(new Date());
-    const [editedText, setEditedText] = useState("");
+    const [editedText, setEditedText] = useState(props.log_details);
     // const handleDateChange = (date) => {
     //     setSelectedDate(date);
     //     props.handleChangeDateTime(date);

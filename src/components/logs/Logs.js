@@ -66,7 +66,6 @@ class Logs extends React.Component {
             id: id,
             details: edits,
         };
-        console.log(body);
         const options = {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -76,6 +75,7 @@ class Logs extends React.Component {
             .then((res) => {
                 if (res.status === 200) {
                     this.updateEntries();
+                    this.findHistory(id);
                 }
             })
             .catch((res) => alert(res.message));
