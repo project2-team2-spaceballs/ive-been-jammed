@@ -10,6 +10,7 @@ import PosNeg from './posneg/posneg'
 import {Route,Switch, BrowserRouter} from 'react-router-dom'
 import Opscap from './opscap/Opscap'
 import PosNeg from './posneg/posneg'
+import Home from './Home'
 
 
 function App() {
@@ -18,11 +19,12 @@ function App() {
       <BrowserRouter>
       <Header/>
         <Switch>
-      <Route path='/mx'><Mx/></Route>
-      <Route path='/logs'><Logs/></Route>
-      <Route path='/assetrequest'><AssetRequest/></Route>
-      <Route path='/opscap'><Opscap/></Route>
-      <Route path='/posneg'><PosNeg/></Route>
+      <Route exact path='/'><Home/></Route>
+      <Route exact path='/mx'><Mx/></Route>
+      <Route exact path='/logs'><Logs/></Route>
+      <Route exact path='/assetrequest'><AssetRequest/></Route>
+      <Route exact path='/opscap'><Opscap/></Route>
+      <Route exact path='/posneg'><PosNeg/></Route>
       </Switch>
       </BrowserRouter>
     </ThemeProvider>
