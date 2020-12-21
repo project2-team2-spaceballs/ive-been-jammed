@@ -3,12 +3,15 @@ import {
     AccordionSummary,
     AccordionDetails,
     Typography,
+    IconButton,
 } from "@material-ui/core";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
+import EditIcon from "@material-ui/icons/Edit";
 import { makeStyles } from "@material-ui/core/styles";
 import React, { useState } from "react";
 import LogComments from "./LogComments";
-import LogHistory from "./LogHistory"
+import LogHistory from "./LogHistory";
+import EditEntry from "./EditEntry";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -28,19 +31,23 @@ const useStyles = makeStyles((theme) => ({
 const Entries = (props) => {
     const classes = useStyles();
     const [expanded, setExpanded] = useState(false);
+    const [editEntry, setEditEntry] = useState(false);
 
     const handleChange = (panel, n) => (event, isExpanded) => {
         props.getComments(n);
         props.getHistory(n);
         setExpanded(isExpanded ? panel : false);
     };
-
-
+    const handleEditClick = (n) => {
+        setEditEntry(editEntry ? false : true);
+    };
 
     let n = 0;
     const accordion = props.logEntries.map((entry) => {
         n = entry.id;
-        if(entry.archived === true){ return ""; }
+        if (entry.archived === true) {
+            return "";
+        }
         return (
             <Accordion
                 expanded={expanded === `panel${n}`}
@@ -57,10 +64,27 @@ const Entries = (props) => {
                     <Typography className={classes.secondaryHeading}>
                         {entry.details}
                     </Typography>
+                    <IconButton onClick={() => handleEditClick(n)}>
+                        <EditIcon />
+                    </IconButton>
                 </AccordionSummary>
                 <AccordionDetails>
-                    {props.logComments.length > 0 ? <LogComments comments={props.logComments} /> : ""}
-                    {props.logHistory.length > 0 ? <LogHistory history={props.logHistory} /> : ""}
+                    {editEntry ? (
+                        <EditEntry
+                            log_id={n}
+                            handleSubmit={props.handleSubmitEdits}
+                        />
+                    ) : (
+                        ""
+                    )}
+                    <LogComments
+                        log_id={n}
+                        comments={props.logComments}
+                        commentDetails={props.commentDetails}
+                        handleChange={props.handleChangeComments}
+                        handleSubmit={props.handleSubmitComments}
+                    />
+                    <LogHistory history={props.logHistory} />
                 </AccordionDetails>
             </Accordion>
         );

@@ -16,29 +16,27 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-const NewEntry = (props) => {
+const EditEntry = (props) => {
     const classes = useStyles();
-    const [selectedDate, setSelectedDate] = useState(new Date());
-
-    const handleDateChange = (date) => {
-        setSelectedDate(date);
-        props.handleChangeDateTime(date);
-    };
-
+    // const [selectedDate, setSelectedDate] = useState(new Date());
+    const [editedText, setEditedText] = useState("");
+    // const handleDateChange = (date) => {
+    //     setSelectedDate(date);
+    //     props.handleChangeDateTime(date);
+    // };
+    const handleChangeText = (e) => {
+        setEditedText(e.target.value);
+    }
+    const handleEditSubmit = () => {
+        props.handleSubmit(props.log_id, editedText);
+    }
     return (
         <div className={classes.root}>
-            <h3>New Entry</h3>
+            <h3>Edit Entry</h3>
             <div id="popup">
                 <form id="log-form" onSubmit={props.handleSubmit}>
-                    <TextField
-                        id="details"
-                        label="Details"
-                        multiline={true}
-                        fullWidth={true}
-                        value={props.newDetails}
-                        onChange={props.handleChangeDetails}
-                    />
-                    <MuiPickersUtilsProvider utils={DateFnsUtils}>
+                    
+                    {/* <MuiPickersUtilsProvider utils={DateFnsUtils}>
                         <KeyboardDatePicker
                             margin="normal"
                             id="newDate"
@@ -66,9 +64,17 @@ const NewEntry = (props) => {
                                 "aria-label": "change time",
                             }}
                         />
-                    </MuiPickersUtilsProvider>
-                    <Button variant="contained" onClick={props.handleSubmit}>
-                        Submit Log Entry
+                    </MuiPickersUtilsProvider> */}
+                    <TextField
+                        id="details"
+                        label="Details"
+                        multiline={true}
+                        fullWidth={true}
+                        value={editedText}
+                        onChange={handleChangeText}
+                    />
+                    <Button variant="contained" onClick={handleEditSubmit}>
+                        Edit Entry
                     </Button>
                 </form>
             </div>
@@ -76,4 +82,4 @@ const NewEntry = (props) => {
     );
 };
 
-export default NewEntry;
+export default EditEntry;

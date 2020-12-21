@@ -1,3 +1,10 @@
+# for the project need to run npm install for:
+
+npm install date-fns @date-io/date-fns
+
+# comment to resolve logs
+
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
