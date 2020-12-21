@@ -10,7 +10,7 @@ class AssetRequest extends React.Component {
       userRequests: [], //these are all of the requests specific to the specified user
       messages: [], //so far these are all of the messages for all of the requests not filtered at this point
       newRequest: {//this allows setting the params to add a new request
-        "userId": 2,
+        "userId": 1,
         "sat_id": 22010,
         "pass_start": new Date(),
         "pass_stop": new Date(),
@@ -20,7 +20,7 @@ class AssetRequest extends React.Component {
         "status": "pending"
       }, 
       newMessage: {
-        "user_id": 2,
+        "user_id": 1,
         "time_stamp": new Date(),
         "text": "",
         "asset_request_id": 0,
