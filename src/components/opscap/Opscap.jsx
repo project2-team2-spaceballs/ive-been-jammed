@@ -1,6 +1,8 @@
 import React, {useState, useEffect} from 'react';
-import {Select, MenuItem, FormControl, InputLabel, makeStyles, TextField, Grid, Button} from '@material-ui/core'
+import {Select, Paper, MenuItem, FormControl, InputLabel, makeStyles, TextField, Grid, Button} from '@material-ui/core'
 import axios from 'axios';
+import OpscapTable from './OpscapTable'
+import { red } from '@material-ui/core/colors';
 
 const useStyles = makeStyles(theme => ({
 
@@ -18,18 +20,40 @@ const statusfields = {
     details: ""
 }
 
+const statusfields2 = [{
+    radar_id: 4,
+    mw_stat: 2,
+    md_stat: 3,
+    sda_stat: 4,
+    details: "some Shit"
+}]
+
 const Opscap = () => {
     const classes = useStyles();
     const [status, setStatus] = useState(statusfields);
-    const [statusArray, setStatusArray] = useState([])
+    const [statusArray, setStatusArray] = useState("");
+    const [q, setQ] = useState("");
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        
+        axios.get("http://localhost:8080/opscap")
+            .then(response => {
+                console.log(response.data)
+                setStatusArray(response.data.reverse())
+                setLoading(false);
+            })
+            .catch(error => {
+                console.log(error)
+            })
+
+    }, [])
    
     const handleChange = (event) => setStatus(prevState => ({
         ...prevState,
         [event.target.name]: event.target.value
 
     }));
-
-
 
     const handleClick = () => {
         
@@ -46,19 +70,25 @@ const Opscap = () => {
 
              setStatus(prevState => ( {
                  ...prevState,
-                 details : ""
+                 details : "",
              }));
         
             
-             setStatusArray([...statusArray, status])
+             setStatusArray([status, ...statusArray])
 
     }
 
+    if(loading) {
+        return <h1>Loading Data</h1>;
+    }
+
+    const radarFilter = statusArray.filter(val => val.radar_id.toString().includes(q))
+
 
         
         
     
-    
+  
     
 
     return (
@@ -68,8 +98,8 @@ const Opscap = () => {
         
         
         <Grid item xs>
-        <FormControl className={classes.formControl}>
-             <InputLabel>Radar Id</InputLabel>
+        <FormControl className={classes.formControl} component={Paper}>
+             <InputLabel >Radar Id</InputLabel>
             <Select onChange={handleChange} name="radar_id">
                 <MenuItem value={1}>1</MenuItem>
                 <MenuItem value={2}>2</MenuItem>
@@ -80,10 +110,10 @@ const Opscap = () => {
         </Grid>
 
         <Grid item xs>   
-         <FormControl className={classes.formControl}>
+         <FormControl className={classes.formControl} component={Paper}>
              <InputLabel>Missle Warning Status</InputLabel>
             <Select onChange={handleChange} name="mw_stat">
-                <MenuItem value={1}>Red</MenuItem>
+                <MenuItem style={{backgroundColor:'red'}}value={1}>Red</MenuItem>
                 <MenuItem value={2}>Yellow</MenuItem>
                 <MenuItem value={3}>Green</MenuItem>
                 <MenuItem value={4}>White</MenuItem>
@@ -92,7 +122,7 @@ const Opscap = () => {
         </Grid>
 
         <Grid item xs>  
-        <FormControl className={classes.formControl}>
+        <FormControl className={classes.formControl} component={Paper}>
             <InputLabel>Missle Defense Status</InputLabel>
             <Select onChange={handleChange} name="md_stat">
                 <MenuItem value={1}>Red</MenuItem>
@@ -104,7 +134,7 @@ const Opscap = () => {
         </Grid>  
 
         <Grid item xs>  
-        <FormControl className={classes.formControl}>
+        <FormControl className={classes.formControl} component={Paper}>
             <InputLabel>SDA Status</InputLabel>
             <Select onChange={handleChange} name="sda_stat">
                 <MenuItem value={1}>Red</MenuItem>
@@ -121,8 +151,8 @@ const Opscap = () => {
           name="details"
           value={status.details}
           id="filled-full-width"
-          label="Update MDA Change"
-          style={{ margin: 8 }}
+          label="Reason for OpsCap Change"
+          style={{ margin: 20}}
           fullWidth
           margin="normal"
           InputLabelProps={{
@@ -130,29 +160,42 @@ const Opscap = () => {
           }}
           variant="filled"
         /> 
-
-        <Button onClick={handleClick}>
-            Click me to update shit
+        
+        <Grid item xs container
+  direction="row"
+  justify="space-evenly"
+  alignItems="center">
+        <Button  onClick={handleClick} variant="outlined">
+            Update OpsCap Status
         </Button>
+
+        </Grid>
         
         
 
     </Grid>
     </form>
 
-    <h1> Missle Warning value {status.mw_stat} </h1> 
+    <h1> Current OPSCAP Status </h1> 
 
           
 
               
 
            
-           <h1> Missile defense Value {status.md_stat} </h1>
-           <h1> SDA Status Value {status.sda_stat} </h1>
-           <h1> Radar id Value {status.radar_id} </h1>
-           <h1> details {status.details} </h1>
-    
-    </div>
+    <TextField
+          label="Search"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          id="filled-margin-none"
+          defaultValue=""
+          className={classes.textField}
+          helperText="Input Radar ID"
+          variant="filled"
+        />
+           
+    <OpscapTable rows={radarFilter} />
+    </div> 
     );
     
 };
