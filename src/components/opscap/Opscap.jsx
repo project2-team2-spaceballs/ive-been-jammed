@@ -2,6 +2,7 @@ import React, {useState, useEffect} from 'react';
 import {Select, MenuItem, FormControl, InputLabel, makeStyles, TextField, Grid, Button} from '@material-ui/core'
 import axios from 'axios';
 import OpscapTable from './OpscapTable'
+import { red } from '@material-ui/core/colors';
 
 const useStyles = makeStyles(theme => ({
 
@@ -19,18 +20,36 @@ const statusfields = {
     details: ""
 }
 
+const statusfields2 = [{
+    radar_id: 4,
+    mw_stat: 2,
+    md_stat: 3,
+    sda_stat: 4,
+    details: "some Shit"
+}]
+
 const Opscap = () => {
     const classes = useStyles();
     const [status, setStatus] = useState(statusfields);
-    const [statusArray, setStatusArray] = useState([])
+    const [statusArray, setStatusArray] = useState("");
+    const [q, setQ] = useState("");
+
+    useEffect(() => {
+        axios.get("http://localhost:8080/opscap")
+            .then(response => {
+                setStatusArray(response.data)
+            })
+            .catch(error => {
+                console.log(error)
+            })
+
+    }, [])
    
     const handleChange = (event) => setStatus(prevState => ({
         ...prevState,
         [event.target.name]: event.target.value
 
     }));
-
-
 
     const handleClick = () => {
         
@@ -48,13 +67,16 @@ const Opscap = () => {
              setStatus(prevState => ( {
                  ...prevState,
                  details : "",
-                 mw_stat: 0
              }));
         
             
              setStatusArray([...statusArray, status])
 
     }
+
+    
+
+    const radarFilter = statusArray.filter(val => val.radar_id.toString().includes(q))
 
 
         
@@ -85,7 +107,7 @@ const Opscap = () => {
          <FormControl className={classes.formControl}>
              <InputLabel>Missle Warning Status</InputLabel>
             <Select onChange={handleChange} name="mw_stat">
-                <MenuItem value={1}>Red</MenuItem>
+                <MenuItem style={{backgroundColor:'red'}}value={1}>Red</MenuItem>
                 <MenuItem value={2}>Yellow</MenuItem>
                 <MenuItem value={3}>Green</MenuItem>
                 <MenuItem value={4}>White</MenuItem>
@@ -155,9 +177,18 @@ const Opscap = () => {
               
 
            
-
+    <TextField
+          label="Search"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          id="filled-margin-none"
+          defaultValue=""
+          className={classes.textField}
+          helperText="Input Radar ID"
+          variant="filled"
+        />
            
-    <OpscapTable rows={statusArray} />
+    <OpscapTable rows={radarFilter} />
     </div> 
     );
     
